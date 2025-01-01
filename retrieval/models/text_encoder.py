@@ -5,6 +5,7 @@
 
 
 import torch.nn as nn
+import torch
 from transformers import (
     BertModel,
     BertTokenizer,
@@ -45,7 +46,8 @@ class TextEncoder(nn.Module):
         self.text_encoder = MODELS[config["text_encoder_args"]["type"]][0].from_pretrained(
             config["text_encoder_args"]["type"],
             add_pooling_layer=False)
-
+        # text_ckpt = torch.load("/2214/dongyuanliang/SMC_CodecCLAP/music_textbranch.pt", map_location="cpu")
+        # self.text_encoder.load_state_dict(text_ckpt, strict=False)
         if config["text_encoder_args"]["freeze"]:
             for name, param in self.text_encoder.named_parameters():
                 param.requires_grad = False

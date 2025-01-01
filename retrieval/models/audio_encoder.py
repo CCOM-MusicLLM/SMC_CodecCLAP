@@ -14,7 +14,6 @@ from models.feature_extractor import AudioFeature, DACodes, DACLatents, chunk
 from models.Codes_Embedding import LongCodesEmbedder
 from models.Codes_htsat import Codec_Swin_Transformer
 import audiotools as at #a helpful library from Descript for dealing with wavefiles
-from encodecmae import load_model
 from models.encodec_embedding import EncodecEmbedding
 
 class AudioEncoder(nn.Module):
@@ -48,24 +47,24 @@ class AudioEncoder(nn.Module):
                 patch_size=4,
                 patch_stride=(4, 4),
                 num_classes=527,
-                embed_dim=96,
-                depths=[2, 2, 6, 2],
+                embed_dim=128,
+                depths=[2, 2, 12, 2],
                 num_heads=[4, 8, 16, 32],
                 window_size=8,
                 config=config,
             )
             if config["audio_encoder_args"]["pretrained"]:
-                audio_ckpt = torch.load("pretrained_models/audio_encoder/HTSAT.ckpt", map_location="cpu")["state_dict"]
-                for key in list(audio_ckpt.keys()):
-                    if key.startswith('sed_model') and ('spectrogram_extractor' not in key
-                                                        and 'logmel_extractor' not in key):
-                        v = audio_ckpt.pop(key)
-                        audio_ckpt[key[10:]] = v
+                audio_ckpt = torch.load("/2214/dongyuanliang/SMC_CodecCLAP/music_audiobranch.pt", map_location="cpu")
+                # for key in list(audio_ckpt.keys()):
+                #     if key.startswith('sed_model') and ('spectrogram_extractor' not in key
+                #                                         and 'logmel_extractor' not in key):
+                #         v = audio_ckpt.pop(key)
+                #         audio_ckpt[key[10:]] = v
                 self.audio_enc.load_state_dict(audio_ckpt, strict=False)
-                param_names = [n for n, p in self.audio_enc.named_parameters()]
+                # param_names = [n for n, p in self.audio_enc.named_parameters()]
                 # for n in param_names:
                 #     print(n, "\t", "Loaded" if n in audio_ckpt else "Unloaded")
-            self.audio_width = 768
+            self.audio_width = 1024
             
          ### Add the implementation of Encodec feats  ###
         elif config["audio_encoder_args"]["type"] == "encodec":
@@ -74,6 +73,7 @@ class AudioEncoder(nn.Module):
             
         ### Add the implementation of ENCODECMAE  ###
         elif config["audio_encoder_args"]["type"] == "mae":
+            from encodecmae import load_model
             self.audio_enc = load_model('ec-ec-base_st', mode='train', device=config["device"])
             self.audio_enc.visible_encoder.compile=False
             # features = model.extract_features_from_array(wavs, layer=-1)

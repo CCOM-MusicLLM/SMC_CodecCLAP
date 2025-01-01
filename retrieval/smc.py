@@ -4,7 +4,7 @@
 
 import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
+# os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 
 
 # only record main process logs on wandb
@@ -119,7 +119,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", default="settings/baseline.yaml", type=str,
                         help="Setting files")
-    parser.add_argument("-n", "--exp_name", default="exp_name", type=str,
+    parser.add_argument("-n", "--exp_name", default="from_scratch2", type=str,
                         help="name of this experiment.")
     parser.add_argument("-l", "--lr", default=5e-5, type=float,
                         help="Learning rate.")
@@ -162,11 +162,16 @@ def main():
         )
 
     # self_add create BASELINE dataloader
-    clotho_datamodule = AudioCaptionDataModule(config, "Clotho")
-    dataloader = clotho_datamodule.train_dataloader(is_distributed=is_dist_avail_and_initialized(),
-                                                    num_tasks=get_world_size(),
-                                                    global_rank=get_rank())
-
+    # clotho_datamodule = AudioCaptionDataModule(config, "Clotho")
+    # dataloader = clotho_datamodule.train_dataloader(is_distributed=is_dist_avail_and_initialized(),
+    #                                                 num_tasks=get_world_size(),
+    #                                                 global_rank=get_rank())
+    dataloader = pretrain_dataloader(config, is_distributed=is_dist_avail_and_initialized(), num_tasks=get_world_size(), global_rank=get_rank())
+    if is_main_process():
+        config["json_files"] = ["/2214/dongyuanliang/gettoken/mtg_with_dur_valid.json", "/2214/dongyuanliang/gettoken/fma_with_dur_valid.json", "/2214/dongyuanliang/gettoken/audiostock-250k_with_dur_valid.json"]
+        clotho_val_loader = pretrain_dataloader(config, is_distributed=False)
+        config["json_files"] = ["/2214/dongyuanliang/gettoken/mtg_with_dur_train.json", "/2214/dongyuanliang/gettoken/fma_with_dur_train.json", "/2214/dongyuanliang/gettoken/audiostock-250k_with_dur_train.json"]
+    # print(dataloader.sampler)
     # setup model
     model = ASE(config)
     model = model.to(device)
@@ -217,11 +222,20 @@ def main():
     if is_main_process() and WB_LOG:
         wandb.watch(model)
 
-    clotho_val_loader = clotho_datamodule.val_dataloader()
+    
 
     loss_stats = []
     ac_recall_stats = []
     clotho_recall_stats = []
+
+    # torch.cuda.synchronize()
+    # # set a barrier here
+    # if is_main_process():
+    #     clotho_metrics = validate(model_without_ddp, clotho_val_loader, device) # model_without_ddp
+    #     log_results(clotho_metrics, 'Clotho', main_logger, test=False)
+    # if is_dist_avail_and_initialized():
+    #     dist.barrier()
+
     for epoch in range(start_epoch, max_epoch + 1):
         main_logger.info(f'Training for epoch [{epoch}]')
 

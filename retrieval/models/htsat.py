@@ -905,6 +905,7 @@ class HTSAT_Swin_Transformer(nn.Module):
     # Reshape the wavform to a img size, if you want to use the pretrained swin transformer model
     def reshape_wav2img(self, x):
         B, C, T, F = x.shape
+        # print(B, C, T, F)
         target_T = int(self.spec_size * self.freq_ratio)
         target_F = self.spec_size // self.freq_ratio
         assert T <= target_T and F <= target_F, "the wav size should less than or equal to the swin input size"
@@ -941,15 +942,15 @@ class HTSAT_Swin_Transformer(nn.Module):
         # x = self.logmel_extractor(x)  # (batch_size, 1, time_steps, mel_bins)
 
         # x = input.transpose(2, 3)  # (batch_size, 1, time_steps, mel_bins)
-
+        # print('input shape',input.shape)
         x = self.audio_feats_extractor(input)
-
+        # print('feat shape', x.shape)
         x = x.transpose(1, 3)
         x = self.bn0(x)
         x = x.transpose(1, 3)
         if self.training and self.is_spec_augment:
             x = self.spec_augmenter(x)
-
+        # print('before wav2img shape', x.shape)
         x = self.reshape_wav2img(x)
         output_dict = self.forward_features(x)
         # x = self.head(x)

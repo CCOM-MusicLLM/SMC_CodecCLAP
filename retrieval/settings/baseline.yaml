@@ -4,7 +4,7 @@ seed: 20
 embed_size: 1024
 temp: 0.07
 # queue_size: 5120
-json_files: ["retrieval/data/Clotho/json_files/train.json"]
+json_files: ["/2214/dongyuanliang/gettoken/mtg_with_dur_train.json", "/2214/dongyuanliang/gettoken/fma_with_dur_train.json", "/2214/dongyuanliang/gettoken/audiostock-250k_with_dur_train.json"]
 # json_files: ["retrieval/data/Clotho/json_files/test.json"]
 resume: false
 blacklist: "data/json_files/blacklist/" # path to blacklist file
@@ -15,11 +15,11 @@ dist_args:
   dist_url: "env://" # TO CHECK
 
 audio_args:
-  sr: 32000 # for non-dac usage
+  sr: 48000 # for non-dac usage
   # sr: 16000 # for dac only
   # sr: 44100 # for dac only
   n_fft: 1024
-  hop_length: 320
+  hop_length: 480
   f_min: 50
   f_max: 14000
   n_mels: 64
@@ -34,19 +34,19 @@ audio_encoder_args:
   model: "htsat" # the key of model be used in logging naming
   # type: "mel"
   # model: "mel"
-  pretrained: False 
+  pretrained: True 
   freeze: False
   spec_augment: True
   # audio_width: 64064 # AudioFeature: [1, 1, 1001, 64] ==> 1001*64 = 64064 for mel; 
 
 
 data_args:
-  batch_size: 32
-  num_workers: 56
+  batch_size: 256
+  num_workers: 12
 
 
 text_encoder_args:
-  type: 'bert-base-uncased'
+  type: 'roberta-base'
   freeze: False
 
 
@@ -62,6 +62,6 @@ optim_args:
 
 training:
   spec_augmentation: False
-  epochs: 15
+  epochs: 150
   clip_grad: 2
   dropout: 0.2

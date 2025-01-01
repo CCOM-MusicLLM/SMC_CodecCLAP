@@ -21,7 +21,7 @@ class AudioCaptionDataset(Dataset):
         self.sr = audio_config["sr"]
 
         # json_path = f"data/{dataset}/json_files/{split}.json"
-        json_path = f"WavCaps/retrieval/data/{dataset}/json_files/{split}.json"
+        json_path = f"SMC_CodecCLAP/retrieval/data/{dataset}/json_files/{split}.json"
 
         if audio_config["max_length"] != 0:
             self.max_length = audio_config["max_length"] * self.sr
@@ -36,10 +36,11 @@ class AudioCaptionDataset(Dataset):
         if self.num_captions_per_audio == 1:
             self.captions = [item["caption"] for item in json_obj]
             self.wav_paths = [item["audio"] for item in json_obj]
-        elif self.num_captions_per_audio == 5:
-            self.captions = [item["caption_{}".format(i)] for item in json_obj for i in range(1, 6)]
-            self.wav_paths = [item["audio"] for item in json_obj for _ in range(1, 6)]
+        elif self.num_captions_per_audio == 2:
+            self.captions = [item["caption_{}".format(i)] for item in json_obj for i in range(1, 3)]
+            self.wav_paths = [item["audio"] for item in json_obj for _ in range(1, 3)]
         else:
+            print(self.num_captions_per_audio)
             raise ValueError("Incorrect num_captions_per_audio.")
 
     def __len__(self):
